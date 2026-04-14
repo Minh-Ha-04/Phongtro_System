@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config
+data:
+  MYSQL_HOST: mysql
+  MYSQL_PORT: "3306"
+  MYSQL_USER: root
+  MYSQL_PASSWORD: root
+  ROOM_SERVICE_URL: http://room-service:8082
+  INVOICE_SERVICE_URL: http://invoice-service:8081
+  TENANT_SERVICE_URL: http://tenant-service:8083
+  CONTRACT_SERVICE_URL: http://contract-service:8084

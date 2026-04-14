@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QL Phòng Trọ</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  </head>
+  <body class="login-pending">
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="loginOverlay" class="login-overlay">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-logo">🏠</div>
+          <h2>Hệ thống Quản lý Phòng trọ</h2>
+          <p>Vui lòng đăng nhập để tiếp tục</p>
+        </div>
+        <div class="login-form">
+          <div class="form-group">
+            <label>Tài khoản</label>
+            <input type="text" id="loginUser" placeholder="admin" autofocus />
+          </div>
+          <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="loginPass" placeholder="••••••" />
+          </div>
+          <div id="loginError" class="login-error" style="display: none;">
+            ❌ Sai tài khoản hoặc mật khẩu!
+          </div>
+          <button class="btn btn-primary btn-login" onclick="handleLogin()">
+            Đăng nhập
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main" style="display: none;">
+        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
+          <div>
+            <div class="header-title" id="pageTitle">Dashboard</div>
+            <div class="header-sub">Chào mừng trở lại, Admin 👋</div>
+          </div>
+          <button class="btn-icon" onclick="openUtilityPriceModal()" title="Cấu hình giá điện nước" style="background: #f3f4f6; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 20px; transition: all 0.2s;">
+            ⚙️ 
+          </button>
+          <div style="flex: 1;"></div>
+          <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #dbeafe">💰</div>
+            <div>
+              <div class="stat-val" id="monthlyRevenueStat">0đ</div>
+              <div class="stat-label">Doanh thu </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Room List -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-icon">🚪</span>
+              <span class="panel-title">Danh sách phòng</span>
+              <span class="panel-action" onclick="openModal('addRoomModal')"
+                >+ Thêm phòng</span
+              >
+            </div>
+            <div class="room-search">
+              <div class="search-box">
+                🔍
+                <input
+                  type="text"
+                  placeholder="Tìm phòng..."
+                  id="roomSearch"
+                  oninput="filterRooms()"
+                />
+              </div>
+            </div>
+            <div class="filter-tabs">
+              <div class="filter-tab active" onclick="setFilter('all', this)">
+                Tất cả
+              </div>
+              <div class="filter-tab" onclick="setFilter('occupied', this)">
+                Đang thuê
+              </div>
+              <div class="filter-tab" onclick="setFilter('vacant', this)">
+                Trống
+              </div>
+            </div>
+            <div class="room-list" id="roomList">
+              <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <div class="empty-text">Đang tải dữ liệu...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail Panel -->
+          <div class="panel detail-panel" id="detailPanel">
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">🏠</div>
+              <div class="empty-text">Chọn một phòng để xem chi tiết</div>
+              <div class="empty-sub">
+                Nhấn vào một phòng ở danh sách bên trái
+              </div>
+            </div>
+            <div
+              id="roomDetail"
+              style="
+                display: none;
+                flex-direction: column;
+                overflow: hidden;
+                height: 100%;
+              "
+            ></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Modal: Tạo hóa đơn -->
+    <div class="modal-backdrop" id="invoiceModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">🧾</span>
+          <div class="modal-title">
+            Tạo hóa đơn <span id="invoiceMonth"></span>
+          </div>
+          <div class="modal-close" onclick="closeModal('invoiceModal')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tháng</label>
+                <input type="number" id="inv_month" min="1" max="12" value="" />
+              </div>
+              <div class="form-group">
+                <label>Năm</label>
+                <input type="number" id="inv_year" min="2000" max="2100" value="" />
+              </div>
+            </div>
+            <label>Tiền phòng (VNĐ)</label>
+            <input type="number" id="inv_rent" readonly style="background: #eef2ff" />
+          </div>
+        
+          <div class="modal-section" style="margin-top: 12px;">⚡ Điện năng</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Chỉ số cũ (kWh)</label>
+              <input type="number" id="inv_elec_old" step="0.1" placeholder="0" oninput="estimateTotal()" />
+            </div>
+            <div class="form-group">
+              <label>Chỉ số mới (kWh)</label>
+              <input type="number" id="inv_elec_new" step="0.1" placeholder="0" oninput="estimateTotal()"/>
+            </div>
+          </div>
+        
+          <div class="modal-section">💧 Nước</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Chỉ số cũ (m³)</label>
+              <input type="number" id="inv_water_old" step="0.1" placeholder="0" oninput="estimateTotal()" />
+            </div>
+            <div class="form-group">
+              <label>Chỉ số mới (m³)</label>
+              <input type="number" id="inv_water_new" step="0.1" placeholder="0" oninput="estimateTotal()" />
+            </div>
+          </div>
+
+          <div class="modal-section" style="margin-top: 12px;">🛎️ Dịch vụ khác</div>
+          <div id="extraServicesContainer">
+            <div class="extra-service-item" style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <input type="text" placeholder="Tên dịch vụ" class="extra-name" style="flex: 2;" oninput="estimateTotal()" />
+              <input type="number" placeholder="Số tiền" class="extra-amount" style="flex: 1;" oninput="estimateTotal()" />
+              <button type="button" class="btn-remove-service" style="background: none; border: none; color: #ef4444; cursor: pointer;" onclick="removeExtraService(this)">✖</button>
+            </div>
+          </div>
+          <button type="button" class="btn-outline" style="font-size: 12px; margin-top: 4px;" onclick="addExtraService()">+ Thêm dịch vụ</button>
+
+          <div class="invoice-box" style="margin-top: 12px;">
+            <div class="invoice-box-title">📋 Thông tin hóa đơn</div>
+            
+            <div class="invoice-row">
+              <span class="invoice-label">Tiền phòng</span>
+              <span class="invoice-val" id="sum_rent">—</span>
+            </div>
+            <div class="invoice-row">
+              <span class="invoice-label">Giá điện</span>
+              <span class="invoice-val" id="elecPricePerUnit">—</span>
+            </div>
+            <div class="invoice-row">
+              <span class="invoice-label">Tiền điện (ước tính)</span>
+              <span class="invoice-val" id="sum_elec">—</span>
+            </div>
+            <div class="invoice-row">
+              <span class="invoice-label">Giá nước</span>
+              <span class="invoice-val" id="waterPricePerUnit">—</span>
+            </div>
+            <div class="invoice-row">
+              <span class="invoice-label">Tiền nước (ước tính)</span>
+              <span class="invoice-val" id="sum_water">—</span>
+            </div>
+            <div id="extraServicesSummary"></div>
+            <hr class="invoice-divider" />
+            <div class="invoice-total">
+              <span>Tổng cộng (dự kiến)</span><span id="sum_total">—</span>
+            </div>
+          </div>
+          <div class="note" style="font-size: 12px; color: #6b7280; margin-top: 8px;">
+            💡 Lưu ý: Hóa đơn sẽ được tính theo giá điện/nước hiện hành.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('invoiceModal')">
+            Hủy
+          </button>
+          <button class="btn btn-primary" onclick="submitInvoice()">
+            🧾 Tạo hóa đơn
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Thêm phòng mới -->
+    <div class="modal-backdrop" id="addRoomModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">🚪</span>
+          <div class="modal-title">Thêm phòng mới</div>
+          <div class="modal-close" onclick="closeModal('addRoomModal')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số phòng *</label
+              ><input type="text" id="new_roomNumber" placeholder="P101" />
+            </div>
+            <div class="form-group">
+              <label>Tầng</label
+              ><input type="number" id="new_floor" placeholder="1" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Diện tích (m²)</label
+              ><input type="number" id="new_area" step="0.1" placeholder="25" />
+            </div>
+            <div class="form-group">
+              <label>Giá thuê/tháng (VNĐ)</label
+              ><input type="number" id="new_price" placeholder="3500000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label
+            ><input
+              type="text"
+              id="new_description"
+              placeholder="Phòng có ban công..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label><input type="text" id="new_note" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('addRoomModal')">
+            Hủy
+          </button>
+          <button class="btn btn-primary" onclick="submitAddRoom()">
+            ➕ Thêm phòng
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Sửa thông tin phòng -->
+    <div class="modal-backdrop" id="editRoomModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">✏️</span>
+          <div class="modal-title">Sửa thông tin phòng</div>
+          <div class="modal-close" onclick="closeModal('editRoomModal')">✕</div>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit_roomId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số phòng *</label
+              ><input type="text" id="edit_roomNumber" />
+            </div>
+            <div class="form-group">
+              <label>Tầng</label><input type="number" id="edit_floor" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Diện tích (m²)</label
+              ><input type="number" id="edit_area" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Giá thuê/tháng (VNĐ)</label
+              ><input type="number" id="edit_price" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label><input type="text" id="edit_description" />
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label><input type="text" id="edit_note" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('editRoomModal')">
+            Hủy
+          </button>
+          <button class="btn btn-primary" onclick="submitEditRoom()">
+            💾 Lưu thay đổi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Thêm hợp đồng mới (từ tab lịch sử) -->
+    <div class="modal-backdrop" id="newContractModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">📄</span>
+          <div class="modal-title">
+            Thêm hợp đồng — <span id="ncm_roomLabel"></span>
+          </div>
+          <div class="modal-close" onclick="closeModal('newContractModal')">
+            ✕
+          </div>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="ncm_roomId" />
+          <input type="hidden" id="ncm_rentPrice" />
+
+          <!-- Cảnh báo trùng ngày -->
+          <div id="ncm_existingWarning" style="display: none"></div>
+
+          <div class="modal-section">👤 Thông tin khách thuê</div>
+          <div class="form-group">
+            <label>Họ và tên *</label
+            ><input
+              type="text"
+              id="newContractName"
+              placeholder="Nguyễn Văn A"
+            />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số điện thoại</label
+              ><input type="tel" id="newContractPhone" />
+            </div>
+            <div class="form-group">
+              <label>CCCD</label><input type="text" id="newContractIdentity" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email</label><input type="email" id="newContractEmail" />
+            </div>
+            <div class="form-group">
+              <label>Địa chỉ</label
+              ><input type="text" id="newContractAddress" />
+            </div>
+          </div>
+
+          <div class="modal-section" style="margin-top: 8px">
+            📄 Thông tin hợp đồng
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ngày bắt đầu *</label
+              ><input type="text" id="newContractStart" class="datepicker-input" placeholder="dd/mm/yyyy" />
+            </div>
+            <div class="form-group">
+              <label>Ngày kết thúc *</label
+              ><input type="text" id="newContractEnd"   class="datepicker-input" placeholder="dd/mm/yyyy" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label
+            ><input type="text" id="newContractNote" placeholder="Không" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-outline"
+            onclick="closeModal('newContractModal')"
+          >
+            Hủy
+          </button>
+          <button
+            class="btn btn-success"
+            onclick="createNewContract(+document.getElementById('ncm_roomId').value)"
+          >
+            ✅ Lưu hợp đồng
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+    <!-- Modal: Lịch sử hóa đơn -->
+    <div class="modal-backdrop" id="invoiceHistoryModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">📜</span>
+          <div class="modal-title">Lịch sử hóa đơn</div>
+          <div class="modal-close" onclick="closeModal('invoiceHistoryModal')">✕</div>
+        </div>
+        <div class="modal-body" id="invoiceHistoryBody">
+          <!-- Danh sách hóa đơn sẽ được render ở đây -->
+          <div class="loading">Đang tải...</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('invoiceHistoryModal')">Đóng</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Cấu hình giá điện nước -->
+    <div class="modal-backdrop" id="utilityPriceModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span style="font-size: 20px">⚙️</span>
+          <div class="modal-title">Cấu hình giá điện nước</div>
+          <div class="modal-close" onclick="closeModal('utilityPriceModal')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Giá điện (VNĐ/kWh)</label>
+            <input type="number" id="cfg_elec_price" placeholder="3000" />
+          </div>
+          <div class="form-group">
+            <label>Giá nước (VNĐ/m³)</label>
+            <input type="number" id="cfg_water_price" placeholder="15000" />
+          </div>
+          <div class="note" style="font-size: 12px; color: #6b7280; margin-top: 8px;">
+            💡 Giá mới sẽ được áp dụng cho các hóa đơn tạo từ thời điểm này trở đi.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('utilityPriceModal')">
+            Hủy
+          </button>
+          <button class="btn btn-primary" onclick="submitUtilityPrice()">
+            💾 Lưu cấu hình
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/actions.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoice-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoice-service
+  template:
+    metadata:
+      labels:
+        app: invoice-service
+    spec:
+      containers:
+      - name: invoice-service
+        image: invoice-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://mysql:3306/invoice_db?createDatabaseIfNotExist=true
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: MYSQL_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: MYSQL_PASSWORD
+        - name: ROOM_SERVICE_URL
+          value: http://room-service:8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoice-service
+spec:
+  selector:
+    app: invoice-service
+  ports:
+  - port: 8084
+    targetPort: 8084
