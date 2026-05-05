@@ -23,7 +23,7 @@ public class User {
     private String fullName;
 
     @Column(nullable = false)
-    private String role; // ADMIN, USER
+    private String role; 
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -2,7 +2,7 @@
 //  config.js — Cau hinh & State toan cuc
 // ============================================================
 
-const API_BASE = 'http://localhost:30080';
+const API_BASE = 'http://localhost:8080';
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
