@@ -1,8 +1,10 @@
 // ============================================================
-//  config.js — Cấu hình & State toàn cục
+//  config.js — Cau hinh & State toan cuc
 // ============================================================
 
 const API_BASE = 'http://localhost:30080';
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
 
 const state = {
   rooms:           [],
@@ -16,5 +18,5 @@ const state = {
   currentYear:     new Date().getFullYear(),
 };
 
-// Biến nội bộ cho modal hóa đơn
+// Bien noi bo cho modal hoa don
 let _currentInvoiceRoomId = null;

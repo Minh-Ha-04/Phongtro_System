@@ -11,3 +11,6 @@ data:
   INVOICE_SERVICE_URL: http://invoice-service:8081
   TENANT_SERVICE_URL: http://tenant-service:8083
   CONTRACT_SERVICE_URL: http://contract-service:8084
+  AUTH_SERVICE_URL: http://auth-service:8085
+  JWT_SECRET: YTJiM2M0ZDVlNmY3ZzhoOWkwajFrMmwzbTRuNW82cDdxOHI5czB0MXUydg==
+  JWT_EXPIRATION: "86400000"

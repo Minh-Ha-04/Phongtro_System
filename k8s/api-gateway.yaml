@@ -18,6 +18,12 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: JWT_SECRET
 ---
 apiVersion: v1
 kind: Service

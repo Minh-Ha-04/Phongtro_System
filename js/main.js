@@ -1,6 +1,9 @@
 // ============================================================
-//  main.js — Entry point: khởi động ứng dụng
-//  Load sau tất cả các file js khác.
+//  main.js — Entry point: khoi dong ung dung
+//  Load sau tat ca cac file js khac.
 // ============================================================
 
-loadAllData();
+// Chi load du lieu khi da dang nhap (co token)
+if (localStorage.getItem(TOKEN_KEY)) {
+  loadAllData();
+}

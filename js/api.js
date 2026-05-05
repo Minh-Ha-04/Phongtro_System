@@ -1,37 +1,56 @@
 // ============================================================
-//  api.js — API helpers (phụ thuộc: config.js)
+//  api.js — API helpers (phu thuoc: config.js)
 // ============================================================
 
 /**
- * Wrapper fetch với base URL, JSON headers, và error handling.
+ * Wrapper fetch voi base URL, JSON headers, JWT token, va error handling.
  * @param {string} endpoint
  * @param {RequestInit} options
  * @returns {Promise<any>}
  */
 async function apiCall(endpoint, options = {}) {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+
   const res = await fetch(`${API_BASE}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
+    headers,
   });
+
+  // Handle 401 - redirect to login (only if user was logged in)
+  if (res.status === 401 && token) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    window.location.reload();
+    throw new Error('Phien dang nhap het han');
+  }
 
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
     throw new Error(errText || `HTTP ${res.status}`);
   }
 
-  // Kiểm tra xem response có body JSON không
+  // Kiem tra xem response co body JSON khong
   const contentType = res.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     return res.json();
   }
 
-  // Nếu không phải JSON, đọc text (có thể rỗng) và trả về
+  // Neu khong phai JSON, doc text (co the rong) va tra ve
   const text = await res.text();
   return text || null;
 }
 
 /**
- * Gọi nhiều API song song, mỗi request có fallback riêng nếu lỗi.
+ * Goi nhieu API song song, moi request co fallback rieng neu loi.
  * @param {Array<[string, RequestInit, any]>} requests - [endpoint, options, fallback]
  * @returns {Promise<any[]>}
  */

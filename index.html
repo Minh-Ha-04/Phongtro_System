@@ -22,20 +22,55 @@
           <p>Vui lòng đăng nhập để tiếp tục</p>
         </div>
         <div class="login-form">
-          <div class="form-group">
-            <label>Tài khoản</label>
-            <input type="text" id="loginUser" placeholder="admin" autofocus />
+          <!-- ===== LOGIN SECTION ===== -->
+          <div id="loginFormSection">
+            <div class="form-group">
+              <label>Tai khoan</label>
+              <input type="text" id="loginUser" placeholder="admin" autofocus />
+            </div>
+            <div class="form-group">
+              <label>Mat khau</label>
+              <input type="password" id="loginPass" placeholder="******" />
+            </div>
+            <div id="loginError" class="login-error" style="display: none;">
+              Sai tai khoan hoac mat khau!
+            </div>
+            <button class="btn btn-primary btn-login" onclick="handleLogin()">
+              Dang nhap
+            </button>
+            <div class="login-toggle">
+              Chua co tai khoan? <a href="#" onclick="showRegisterForm(); return false;">Dang ky</a>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Mật khẩu</label>
-            <input type="password" id="loginPass" placeholder="••••••" />
+
+          <!-- ===== REGISTER SECTION ===== -->
+          <div id="registerFormSection" style="display: none;">
+            <div class="form-group">
+              <label>Ho va ten</label>
+              <input type="text" id="registerFullName" placeholder="Nguyen Van A" />
+            </div>
+            <div class="form-group">
+              <label>Tai khoan</label>
+              <input type="text" id="registerUser" placeholder="username" />
+            </div>
+            <div class="form-group">
+              <label>Mat khau</label>
+              <input type="password" id="registerPass" placeholder="******" />
+            </div>
+            <div class="form-group">
+              <label>Xac nhan mat khau</label>
+              <input type="password" id="registerPassConfirm" placeholder="******" />
+            </div>
+            <div id="registerError" class="login-error" style="display: none;">
+              Loi dang ky!
+            </div>
+            <button class="btn btn-primary btn-login" onclick="handleRegister()">
+              Dang ky
+            </button>
+            <div class="login-toggle">
+              Da co tai khoan? <a href="#" onclick="showLoginForm(); return false;">Dang nhap</a>
+            </div>
           </div>
-          <div id="loginError" class="login-error" style="display: none;">
-            ❌ Sai tài khoản hoặc mật khẩu!
-          </div>
-          <button class="btn btn-primary btn-login" onclick="handleLogin()">
-            Đăng nhập
-          </button>
         </div>
       </div>
     </div>
@@ -44,7 +79,7 @@
         <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
           <div>
             <div class="header-title" id="pageTitle">Dashboard</div>
-            <div class="header-sub">Chào mừng trở lại, Admin 👋</div>
+            <div class="header-sub">Chao mung tro lai, <span id="userGreeting">Admin</span></div>
           </div>
           <button class="btn-icon" onclick="openUtilityPriceModal()" title="Cấu hình giá điện nước" style="background: #f3f4f6; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 20px; transition: all 0.2s;">
             ⚙️ 

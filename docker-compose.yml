@@ -14,6 +14,21 @@ services:
     networks:
       - micro-net
 
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      JWT_SECRET: YTJiM2M0ZDVlNmY3ZzhoOWkwajFrMmwzbTRuNW82cDdxOHI5czB0MXUydg==
+      JWT_EXPIRATION: 86400000
+    networks:
+      - micro-net
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -23,6 +38,9 @@ services:
       - room-service
       - tenant-service
       - contract-service
+      - auth-service
+    environment:
+      JWT_SECRET: YTJiM2M0ZDVlNmY3ZzhoOWkwajFrMmwzbTRuNW82cDdxOHI5czB0MXUydg==
     networks:
       - micro-net
 
