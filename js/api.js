@@ -30,7 +30,7 @@ async function apiCall(endpoint, options = {}) {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     window.location.reload();
-    throw new Error('Phien dang nhap het han');
+    throw new Error('Phiên đăng nhập hết hạn');
   }
 
   if (!res.ok) {

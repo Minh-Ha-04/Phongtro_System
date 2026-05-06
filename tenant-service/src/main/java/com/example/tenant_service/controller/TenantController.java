@@ -19,19 +19,19 @@ public class TenantController {
 
     @PostMapping
     public Tenant create(@RequestBody Tenant t) {
-        log.info("[TENANT-SERVICE] Received request to CREATE tenant: {}", t.getName());
+        log.info("[TENANT-SERVICE] Tạo khách  {}", t.getName());
         return service.create(t);
     }
 
     @GetMapping
     public List<Tenant> getAll() {
-        log.info("[TENANT-SERVICE] Received request to GET ALL tenants");
+        log.info("[TENANT-SERVICE] Lấy danh sách tất cả khách hàng");
         return service.getAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Tenant> getById(@PathVariable Long id) {
-        log.info("[TENANT-SERVICE] Received request to GET tenant by ID: {}", id);
+        log.info("[TENANT-SERVICE] Lấy khách  ID: {}", id);
         return service.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -39,7 +39,7 @@ public class TenantController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Tenant> update(@PathVariable Long id, @RequestBody Tenant t) {
-        log.info("[TENANT-SERVICE] Received request to UPDATE tenant ID: {}", id);
+        log.info("[TENANT-SERVICE] Cập nhật khách  ID: {}", id);
         return service.update(id, t)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -47,7 +47,7 @@ public class TenantController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("[TENANT-SERVICE] Received request to DELETE tenant ID: {}", id);
+        log.info("[TENANT-SERVICE] Xóa khách ID: {}", id);
         if (!service.delete(id)) {
             return ResponseEntity.notFound().build();
         }

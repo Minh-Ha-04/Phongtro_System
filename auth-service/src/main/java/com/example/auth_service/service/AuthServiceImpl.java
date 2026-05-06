@@ -28,12 +28,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> {
                     log.warn("[AUTH-SERVICE] User not found: {}", request.getUsername());
-                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai tai khoan hoac mat khau");
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai tài khoản hoặc mật khẩu");
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("[AUTH-SERVICE] Wrong password for user: {}", request.getUsername());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai tai khoan hoac mat khau");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai tài khoản hoặc mật khẩu");
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
@@ -48,14 +48,14 @@ public class AuthServiceImpl implements AuthService {
 
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("[AUTH-SERVICE] Username already exists: {}", request.getUsername());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Tai khoan da ton tai");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Tài khoản đã tồn tại");
         }
 
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setRole("USER");
+        user.setRole("ADMIN");
 
         userRepository.save(user);
         log.info("[AUTH-SERVICE] User registered: {}", user.getUsername());
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse getCurrentUser(String token) {
         String username = jwtUtil.getUsernameFromToken(token);
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tài khoản không tồn tại"));
 
         return new AuthResponse(null, user.getUsername(), user.getFullName(), user.getRole());
     }

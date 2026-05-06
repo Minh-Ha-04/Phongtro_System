@@ -25,9 +25,9 @@ public class DataInitializer implements CommandLineRunner {
             admin.setFullName("Administrator");
             admin.setRole("ADMIN");
             userRepository.save(admin);
-            log.info("[AUTH-SERVICE] Admin account created: admin / 123456");
+            log.info("[AUTH-SERVICE] Tài khoản admin được tạo : admin / 123456");
         } else {
-            log.info("[AUTH-SERVICE] Admin account already exists, skipping seed.");
+            log.info("[AUTH-SERVICE] Tài khoản admin đã tồn tại , bỏ qua tự tạo.");
         }
     }
 }

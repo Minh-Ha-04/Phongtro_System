@@ -33,7 +33,7 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public Contract createFull(CreateContractRequest req) {
-        log.info("[CONTRACT-SERVICE] Creating a full contract for Room: {}", req.getRoomId());
+        log.info("[CONTRACT-SERVICE] Tạo hợp đồng cho phòng  {}", req.getRoomId());
         
         try {
             log.info("[CONTRACT-SERVICE] ----> [GET] Calling ROOM-SERVICE: {}/rooms/{}", roomServiceUrl, req.getRoomId());
@@ -43,8 +43,8 @@ public class ContractServiceImpl implements ContractService {
             );
 
             if (!roomRes.getStatusCode().is2xxSuccessful() || roomRes.getBody() == null) {
-                log.error("[CONTRACT-SERVICE] Room not found");
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room không tồn tại");
+                log.error("[CONTRACT-SERVICE] Không tìm thấy phòng ");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Phòng không tồn tại");
             }
             log.info("[CONTRACT-SERVICE] <---- [RESULT] Room OK: {}", roomRes.getBody().getRoomNumber());
 
@@ -55,20 +55,20 @@ public class ContractServiceImpl implements ContractService {
 
         Tenant createdTenant;
         try {
-            log.info("[CONTRACT-SERVICE] ----> [POST] Calling TENANT-SERVICE to create tenant: {}", req.getTenant().getName());
+            log.info("[CONTRACT-SERVICE] ----> [POST] Gọi sang TENANT-SERVICE để tạo khách hàng mới: {}", req.getTenant().getName());
             createdTenant = restTemplate.postForObject(
                     tenantServiceUrl + "/tenants",
                     req.getTenant(),
                     Tenant.class
             );
-            log.info("[CONTRACT-SERVICE] <---- [RESULT] Created Tenant ID: {}", createdTenant != null ? createdTenant.getId() : "null");
+            log.info("[CONTRACT-SERVICE] <---- [RESULT] Tạo khách hàng với ID : {}", createdTenant != null ? createdTenant.getId() : "null");
         } catch (Exception e) {
-            log.error("[CONTRACT-SERVICE] Tenant service error: {}", e.getMessage());
+            log.error("[CONTRACT-SERVICE] Tenant service lỗi: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Tenant service lỗi");
         }
 
         if (createdTenant == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không tạo được tenant");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không tạo được khách hàng");
         }
 
         Contract c = new Contract();
@@ -78,7 +78,7 @@ public class ContractServiceImpl implements ContractService {
         c.setEndDate(req.getEndDate());
         c.setTotalAmount(req.getTotalAmount());
 
-        log.info("[CONTRACT-SERVICE] Checking for overlapping contracts...");
+        log.info("[CONTRACT-SERVICE] Kiểm tra các hợp đồng chồng chéo...");
         List<Contract> overlap = repo
                 .findByRoomIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         c.getRoomId(),
@@ -88,7 +88,7 @@ public class ContractServiceImpl implements ContractService {
                 );
 
         if (!overlap.isEmpty()) {
-            log.warn("[CONTRACT-SERVICE] Overlap found for Room: {}", c.getRoomId());
+            log.warn("[CONTRACT-SERVICE] PHòng bị chồng chéo :{}", c.getRoomId());
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Phòng đã có hợp đồng ACTIVE trong khoảng thời gian này"
@@ -96,7 +96,7 @@ public class ContractServiceImpl implements ContractService {
         }
 
         c.setStatus(Contract.Status.ACTIVE);
-        log.info("[CONTRACT-SERVICE] Contract successfully created and activated");
+        log.info("[CONTRACT-SERVICE] Hợp đồng đã được tạo và kích hoạt thành công.");
         return repo.save(c);
     }
 
@@ -107,7 +107,7 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public List<Contract> getByRoom(Long roomId) {
-        log.info("[CONTRACT-SERVICE] Fetching contracts for Room: {}", roomId);
+        log.info("[CONTRACT-SERVICE] Tìm kiếm hợp đồng cho phòng : {}", roomId);
         return repo.findByRoomId(roomId);
     }
 
@@ -129,7 +129,7 @@ public class ContractServiceImpl implements ContractService {
         }
 
         contract.setStatus(Contract.Status.CANCELLED);
-        log.info("[CONTRACT-SERVICE] Contract ID: {} marked as CANCELLED", id);
+        log.info("[CONTRACT-SERVICE] Hợp đồng ID: {} đã bị hủy ", id);
         return repo.save(contract);
     }
 
@@ -162,7 +162,7 @@ public class ContractServiceImpl implements ContractService {
         }
 
         try {
-            log.info("[CONTRACT-SERVICE] ----> [PUT] Updating tenant in TENANT-SERVICE: {}", existing.getTenantId());
+            log.info("[CONTRACT-SERVICE] ----> [PUT] Cập nhật khách hàng trong TENANT-SERVICE: {}", existing.getTenantId());
             restTemplate.put(
                     tenantServiceUrl + "/tenants/" + existing.getTenantId(),
                     req.getTenant()
@@ -196,7 +196,7 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public void deleteContract(Long id) {
-        log.info("[CONTRACT-SERVICE] Deleting contract ID: {}", id);
+        log.info("[CONTRACT-SERVICE] Xóa hợp đồng ID: {}", id);
         Contract contract = repo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy contract"));
 

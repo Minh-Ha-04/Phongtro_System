@@ -20,21 +20,21 @@ public class RoomController {
     // GET ALL
     @GetMapping
     public List<Room> getAll() {
-        log.info("[ROOM-SERVICE] Received request to GET ALL rooms");
+        log.info("[ROOM-SERVICE] Lấy danh sách tất cả phòng");
         return roomService.getAll();
     }
 
     // GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<Room> getById(@PathVariable Long id) {
-        log.info("[ROOM-SERVICE] Received request to GET room by ID: {}", id);
+        log.info("[ROOM-SERVICE] Lấy phòng theo Id :  {}", id);
         return roomService.getById(id)
                 .map(room -> {
                     log.info("[ROOM-SERVICE] Found room: {}", room.getRoomNumber());
                     return ResponseEntity.ok(room);
                 })
                 .orElseGet(() -> {
-                    log.warn("[ROOM-SERVICE] Room not found with ID: {}", id);
+                    log.warn("[ROOM-SERVICE] Không tìm thấy phòng với  ID: {}", id);
                     return ResponseEntity.notFound().build();
                 });
     }
@@ -42,14 +42,14 @@ public class RoomController {
     // CREATE
     @PostMapping
     public Room create(@RequestBody Room r) {
-        log.info("[ROOM-SERVICE] Received request to CREATE room: {}", r.getRoomNumber());
+        log.info("[ROOM-SERVICE] Tạo phòng ID {}", r.getRoomNumber());
         return roomService.create(r);
     }
 
     // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<Room> update(@PathVariable Long id, @RequestBody Room r) {
-        log.info("[ROOM-SERVICE] Received request to UPDATE room ID: {}", id);
+        log.info("[ROOM-SERVICE] Cập nhậ phòng ID: {}", id);
         return roomService.update(id, r)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -58,7 +58,7 @@ public class RoomController {
     // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("[ROOM-SERVICE] Received request to DELETE room ID: {}", id);
+        log.info("[ROOM-SERVICE] Xóa phòng  ID: {}", id);
         if (!roomService.delete(id)) {
             return ResponseEntity.notFound().build();
         }

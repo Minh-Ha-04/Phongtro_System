@@ -54,24 +54,26 @@ function updateStats() {
     rooms,
     activeContracts,
     invoicesByRoom,
-    currentMonth,
-    currentYear,
     selectedRoomId
   } = state;
 
+  // ========================
+  // 👉 CASE 1: 1 PHÒNG
+  // ========================
   if (selectedRoomId) {
     const invs = invoicesByRoom[selectedRoomId] || [];
-    let revenue = 0;
-    let unpaid = 0;
 
-    invs.forEach(inv => {
-      if (inv.status === 'PAID') revenue += inv.totalAmount || 0;
-      if (inv.month === currentMonth && inv.year === currentYear && inv.status !== 'PAID') unpaid = 1;
-    });
+    const revenue = invs.reduce((sum, inv) => {
+      return inv.status === 'PAID'
+        ? sum + (inv.totalAmount || 0)
+        : sum;
+    }, 0);
 
     setText('totalRoomsStat', 1);
-    setText('occupiedRoomsStat', activeContracts.some(c => c.roomId === selectedRoomId) ? 1 : 0);
-    setText('unpaidInvoicesStat', unpaid);
+    setText(
+      'occupiedRoomsStat',
+      activeContracts.some(c => c.roomId === selectedRoomId) ? 1 : 0
+    );
     setText('monthlyRevenueStat', fmt(revenue));
     return;
   }
@@ -81,32 +83,20 @@ function updateStats() {
   // ========================
   const occupiedRoomIds = new Set(activeContracts.map(c => c.roomId));
 
-  let unpaidCount = 0;
   let totalRevenue = 0;
 
   rooms.forEach(room => {
     const invs = invoicesByRoom[room.id] || [];
 
     invs.forEach(inv => {
-      // Tổng doanh thu toàn hệ thống
       if (inv.status === 'PAID') {
         totalRevenue += inv.totalAmount || 0;
-      }
-
-      // Đếm hóa đơn chưa thanh toán tháng hiện tại
-      if (
-        inv.month === currentMonth &&
-        inv.year === currentYear &&
-        inv.status !== 'PAID'
-      ) {
-        unpaidCount++;
       }
     });
   });
 
   setText('totalRoomsStat', rooms.length);
   setText('occupiedRoomsStat', occupiedRoomIds.size);
-  setText('unpaidInvoicesStat', unpaidCount);
   setText('monthlyRevenueStat', fmt(totalRevenue));
 }
 

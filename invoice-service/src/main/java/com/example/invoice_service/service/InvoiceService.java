@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +28,12 @@ public class InvoiceService {
 
     // 1. Nhập chỉ số điện nước (Cập nhật nếu đã tồn tại)
     public MeterReading saveMeterReading(MeterReading reading) {
-        log.info("[INVOICE-SERVICE] Saving meter reading for Room: {}, Month: {}/{}", reading.getRoomId(), reading.getMonth(), reading.getYear());
-        return meterReadingRepository.findByRoomIdAndMonthAndYear(reading.getRoomId(), reading.getMonth(), reading.getYear())
+        log.info("[INVOICE-SERVICE] Lưu chỉ số điện nước cho phòng : {}, Tháng: {}/{}", reading.getRoomId(),
+                reading.getMonth(), reading.getYear());
+        return meterReadingRepository
+                .findByRoomIdAndMonthAndYear(reading.getRoomId(), reading.getMonth(), reading.getYear())
                 .map(existing -> {
-                    log.info("[INVOICE-SERVICE] Updating existing meter reading ID: {}", existing.getId());
+                    log.info("[INVOICE-SERVICE] Cập nhật chỉ số điện nước  ID: {}", existing.getId());
                     existing.setElectricityOld(reading.getElectricityOld());
                     existing.setElectricityNew(reading.getElectricityNew());
                     existing.setWaterOld(reading.getWaterOld());
@@ -41,7 +42,7 @@ public class InvoiceService {
                     return meterReadingRepository.save(existing);
                 })
                 .orElseGet(() -> {
-                    log.info("[INVOICE-SERVICE] Creating new meter reading record");
+                    log.info("[INVOICE-SERVICE] Tạo mới chỉ số điện nước cho phòng  ID: {}", reading.getRoomId());
                     reading.setReadingDate(LocalDate.now());
                     return meterReadingRepository.save(reading);
                 });
@@ -54,30 +55,32 @@ public class InvoiceService {
         Integer month = request.getMonth();
         Integer year = request.getYear();
 
-        log.info("[INVOICE-SERVICE] Generating invoice for Room: {} for {}/{}", roomId, month, year);
+        log.info("[INVOICE-SERVICE] Tạo hóa đơn mới cho phòng  {} cho {}/{}", roomId, month, year);
 
         // Kiểm tra hóa đơn đã tồn tại
         if (invoiceRepository.findByRoomIdAndMonthAndYear(roomId, month, year).isPresent()) {
-            log.warn("[INVOICE-SERVICE] Invoice already exists for Room: {} Month: {}", roomId, month);
+            log.warn("[INVOICE-SERVICE] Hóa đơn đã tồn taị {} tháng : {}", roomId, month);
             throw new RuntimeException("Hóa đơn đã tồn tại");
         }
 
         // Gọi Room Service để lấy thông tin phòng
         log.info("[INVOICE-SERVICE] ----> [GET] Calling ROOM-SERVICE: {}/rooms/{}", roomServiceUrl, roomId);
         RoomDTO room = restTemplate.getForObject(roomServiceUrl + "/rooms/" + roomId, RoomDTO.class);
-        log.info("[INVOICE-SERVICE] <---- [RESULT] From ROOM-SERVICE: RoomNumber={}, Price={}", room.getRoomNumber(), room.getRentPrice());
+        log.info("[INVOICE-SERVICE] <---- [RESULT] From ROOM-SERVICE: RoomNumber={}, Price={}", room.getRoomNumber(),
+                room.getRentPrice());
 
         // Lấy chỉ số điện nước
-        log.info("[INVOICE-SERVICE] Finding meter readings for Room: {} Month: {}", roomId, month);
+        log.info("[INVOICE-SERVICE] Tìm thấy số điện nước  Room: {} Month: {}", roomId, month);
         MeterReading reading = meterReadingRepository.findByRoomIdAndMonthAndYear(roomId, month, year)
                 .orElseThrow(() -> new RuntimeException("Chưa nhập chỉ số điện nước"));
 
         // Lấy giá điện nước (Dùng mặc định nếu chưa có)
         LocalDate date = LocalDate.of(year, month, 1);
-        log.info("[INVOICE-SERVICE] Fetching utility prices for date: {}", date);
-        UtilityPrice price = utilityPriceRepository.findFirstByEffectiveFromLessThanEqualOrderByEffectiveFromDescIdDesc(date)
+        log.info("[INVOICE-SERVICE] Giá điện nước cho ngày : {}", date);
+        UtilityPrice price = utilityPriceRepository
+                .findFirstByEffectiveFromLessThanEqualOrderByEffectiveFromDescIdDesc(date)
                 .orElseGet(() -> {
-                    log.warn("[INVOICE-SERVICE] No price found in DB for {}, using default", date);
+                    log.warn("[INVOICE-SERVICE] Không có giá điện nước {}, dùng mặc định", date);
                     UtilityPrice defaultP = new UtilityPrice();
                     defaultP.setElectricityPricePerKwh(3000.0);
                     defaultP.setWaterPricePerCube(15000.0);
@@ -97,7 +100,7 @@ public class InvoiceService {
         invoice.setRentAmount(room.getRentPrice());
         invoice.setElectricityAmount(elecAmount);
         invoice.setWaterAmount(waterAmount);
-        
+
         double totalExtra = 0;
         if (request.getExtraServices() != null) {
             totalExtra = request.getExtraServices().stream().mapToDouble(ExtraService::getAmount).sum();
@@ -105,7 +108,7 @@ public class InvoiceService {
         invoice.setTotalAmount(room.getRentPrice() + elecAmount + waterAmount + totalExtra);
         invoice.setStatus("UNPAID");
 
-        log.info("[INVOICE-SERVICE] Saving new invoice. Total: {}", invoice.getTotalAmount());
+        log.info("[INVOICE-SERVICE] Lưu hóa đơn . Tổng  {}", invoice.getTotalAmount());
         return invoiceRepository.save(invoice);
     }
 
@@ -114,7 +117,7 @@ public class InvoiceService {
     }
 
     public Invoice payInvoice(Long id) {
-        log.info("[INVOICE-SERVICE] Paying invoice ID: {}", id);
+        log.info("[INVOICE-SERVICE] Trả hóa đơn  {}", id);
         Invoice invoice = invoiceRepository.findById(id).orElseThrow();
         invoice.setStatus("PAID");
         invoice.setPaymentDate(LocalDate.now());
@@ -123,7 +126,8 @@ public class InvoiceService {
 
     // 7. Lấy giá hiện tại hoặc giá mặc định
     public UtilityPrice getCurrentPrice() {
-        return utilityPriceRepository.findFirstByEffectiveFromLessThanEqualOrderByEffectiveFromDescIdDesc(LocalDate.now())
+        return utilityPriceRepository
+                .findFirstByEffectiveFromLessThanEqualOrderByEffectiveFromDescIdDesc(LocalDate.now())
                 .orElseGet(() -> {
                     UtilityPrice defaultPrice = new UtilityPrice();
                     defaultPrice.setElectricityPricePerKwh(3000.0);
@@ -134,8 +138,8 @@ public class InvoiceService {
     }
 
     public UtilityPrice updateUtilityPrice(UtilityPrice newPrice) {
-        log.info("[INVOICE-SERVICE] Updating Utility Price: Electric={}, Water={}", 
-            newPrice.getElectricityPricePerKwh(), newPrice.getWaterPricePerCube());
+        log.info("[INVOICE-SERVICE] Cập nhật giá điện nước Điện={}, Nước={}",
+                newPrice.getElectricityPricePerKwh(), newPrice.getWaterPricePerCube());
         newPrice.setEffectiveFrom(LocalDate.now());
         return utilityPriceRepository.save(newPrice);
     }

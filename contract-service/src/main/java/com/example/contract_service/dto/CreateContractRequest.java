@@ -6,7 +6,7 @@ import java.time.LocalDate;
 @Data
 public class CreateContractRequest {
 
-    private Tenant tenant;   // gửi thông tin tenant mới
+    private Tenant tenant;   
     private Long roomId;
     private LocalDate startDate;
     private LocalDate endDate;
